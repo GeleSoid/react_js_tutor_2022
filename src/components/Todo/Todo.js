@@ -1,4 +1,5 @@
 import { Button, Checkbox, List, Col, Input } from 'antd';
+import { Pagination } from 'antd';
 import React, {Component } from 'react';
 
 export default class Todo extends Component {
@@ -13,13 +14,11 @@ export default class Todo extends Component {
         fetch('https://jsonplaceholder.typicode.com/todos')
         .then(res => res.json())
         .then(res => this.setState({todoList : res}))
-        
     }
 
     
     handelerTodoChecked = (todoID) =>{
         let todo = JSON.parse(JSON.stringify(this.state.todoList))
-
         todo = todo.filter((item)=>{
             if(item.id == todoID){
                 item.completed = !item.completed
@@ -31,7 +30,6 @@ export default class Todo extends Component {
 
     handlerDeleteTodo = (todoID) => {
         let todo = JSON.parse(JSON.stringify(this.state.todoList))
-
         todo = todo.filter((item)=>{
             if(item.id != todoID) return item;
             
@@ -44,18 +42,26 @@ export default class Todo extends Component {
         let defVariable = [{id: Math.random(), title:e.target.value, completed: false}]
         this.setState({todoList : [...this.state.todoList, ...defVariable] })
     }
+
+    handlerChangePagination = (page, pageSize) => {
+        console.log(page, pageSize)
+        this.setState({perPage : pageSize, curentPage: page})
+    }
+
     render(){
         const {todoList} = this.state;
-        
+        const {curentPage} = this.state;
+        const {perPage} = this.state;
+        const end = curentPage*perPage;
+        const start = end - perPage;
         return(
             <>
                 <Col span={8} style={{margin: '0 auto'}}>
                     <h3>My todo list</h3>
                     <List>
                         <Input placeholder='Добавить todo в список' onPressEnter={(e) => this.handlerAddToTodo(e)}/>
-                        {todoList.map((item,index)=>{
+                        {todoList.slice(start, end).map((item,index)=>{
                             return(
-                                    
                                     <List.Item key={index} style={{listStyle: 'decimal', textDecoration : item.completed ? 'line-through' : 'none'}} >
                                         <Checkbox onChange={() => this.handelerTodoChecked(item.id) } checked={item.completed ? true : false }/>
                                         {item.title}
@@ -64,6 +70,7 @@ export default class Todo extends Component {
                             )
                         })}
                     </List>
+                    <Pagination defaultCurrent={curentPage} defaultPageSize={perPage} total={todoList.length} onChange={(page, pageSize) => this.handlerChangePagination(page, pageSize)} />
                 </Col>
             </>
         )
